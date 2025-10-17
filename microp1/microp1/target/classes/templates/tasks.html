@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Micro P1 To Do List</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --slate-darkest: #101010;
+            --slate-dark: #1a1a1a;
+            --gold-primary: #D4AF37;
+            --gold-light: #FFD700;
+            --gold-dark: #B8860B;
+            --gold-glow: rgba(212, 175, 55, 0.5);
+            --text-primary: #fafafa;
+            --text-default-task: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --danger-glow: rgba(239, 83, 80, 0.6);
+            --danger-primary: #EF5350;
+            --anim-fast: 0.2s;
+            --anim-medium: 0.4s;
+            --anim-slow: 0.6s;
+            --easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+            background-color: var(--slate-darkest);
+            background-image: linear-gradient(125deg, var(--slate-darkest) 0%, #2f250a 25%, #151822 50%, #3a2e0a 75%, var(--slate-darkest) 100%);
+            background-size: 400% 400%;
+            animation: aurora-pan 30s ease infinite;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4XiDAAAAUVBMVEWFhYWDg4N3d3dtbW17e3t1dXWBgYGHh4d5eXlzc3OLi4ubm5uVlZWPj4+NjY19fX2JiYl/f39ra2uRkZGZmZlpaWmXl5dvb29xcXGTk5NnZ2c8TV1mAAAAG3RSTlNAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAvEOwtAAAFVklEQVR4XpWWB67c2BUFb3g557T/hRo9/WUMZHlgr4Bg8Z4qQgQJlHI4A8SzFVrapvmTF9O7dmYRFZ60YiBhJRCgh1FYhiLAmdvX0CzTOpNE77ME0Zty/nWWzchDtiqrmQYF5HZUTlnMwMJ5KmLKagEvgmBERCFNHNVuIYfnARU1bpE1JFXYTLgbGSo6smHAR_APP8LAKUFIEAGCNESJELGTbiRTgFCfGSIKSddeIYgAPCEkGZENYRFLScUFgwI4S8IuJig1EN4FQghEVwASFAbFFEPN+vVbdVgBQZte7sT3IJEDKoDsvRL1sJAoE4sjwjV1quKjICHupEGvFHAMWwExIjgrAqhiRcUfOKiFURAhgzLokRKOKgMjlFCpF2osDwmIg8ag5T4kAWK2TRpYBCnaQi7LOT6loC2JmMIaBvoq2HDlDVOxIoBRjrUHtbJJwiYCI6iGuhRGhAGAMIjHF7Eh3owJbOPrklMTBEbBgUoAieAlA1MhEAGGN4EBQQg0AhGGu3AtyGIE5ARggGIcAAXIVwKBNUSXgVgAEEIIyJEgAw8WSHhFyK8AXbMONoAIEIBo3AmSADeSqJANwBBeh18AIDwEBI8PA2sAASCEexv8BBgP8PQAFBAIYOBmsgABgQhkBIEQ5CLgADgLscR3An3IAqSIDsFDcAVYsK82EDYLwBuLyJxMAgUIahQIbbemQAIAAQRwDU2fBOp+ADjJQJwHAeAD4AIADsB8kADsA8kAXoDRBCwOc3gA+KDRzvcAwgAfEWgADgCLtGV+GOT6loC2JmMIaBvoq2HDlDVOxIoBRjrUHtbJJwiYCI6iGuhRGhAGAMIjHF7Eh3owJbOPrklMTBEbBgUoAieAlA1MhEAGGN4EBQQg0AhGGu3AtyGIE5ARggGIcAAXIVwKBNUSXgVgAEEIIyJEgAw8WSHhFyK8AXbMONoAIEIBo3AmSADeSqJANwBBeh18AIDwEBI8PA2sAASCEexv8BBgP8PQAFBAIYOBmsgABgQhkBIEQ5CLgADgLscR3An3IAqSIDsFDcAVYsK82EDYLwBuLyJxMAgUIahQIbbemQAIAAQRwDU2fBOp+ADjJQJwHAeAD4AIADsB8kADsA8kAXoDRBCwOc3gA+KDRzvcAwgAfEWgADgCLtGV+G0AeuC7AIP4BIi3Afch1cPg7ECiNeB8YBGAA4A3dGdsGoDZAEv3YEVaAXMAgOkK5gAAe9wLcwgAdcgc4MAJHNcAAgFFuGkApH14ADgaAJB2zXQ0gADBpJAQBYAAYRLtgADgBABePAKEeAyEmR_rAXoGuc5CiUaABwGbBQC+wX54soAFu3M55L62xT5EwSoZlO5gL0n4+e5eK9mZ+wEw0AUzTzJ6f55sAk4s4mIeSAn2cgwcDOf3p85gLMAgN4QAk3P9gAcrerAIAXIXrEwBHu8d9XdxgBwAAA9axTEAQC0SjGYQB4/r3lcxcL8AAAAAElFTSuQmCC');
+            opacity: 0.04;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        ::selection {
+            background-color: var(--gold-glow);
+            color: var(--text-primary);
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--slate-darkest);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--gold-dark);
+            border-radius: 10px;
+            border: 2px solid var(--slate-darkest);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: var(--gold-primary);
+        }
+
+        @keyframes aurora-pan {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        @keyframes slide-in {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container {
+            margin: 5rem auto !important;
+            padding: 3rem 3.5rem;
+            background: rgba(26, 26, 26, 0.7);
+            border-radius: 18px;
+            box-shadow: 0 16px 60px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            animation: slide-in var(--anim-slow) var(--easing-standard) forwards;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1.text-center {
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            background-image: linear-gradient(180deg, #ffffff, #b0b0b0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+            animation: slide-in var(--anim-slow) 0.1s var(--easing-standard) forwards;
+            opacity: 0;
+        }
+
+        form {
+            animation: slide-in var(--anim-slow) 0.2s var(--easing-standard) forwards;
+            opacity: 0;
+        }
+
+        .form-control {
+            background: transparent !important;
+            border: none !important;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3) !important;
+            color: var(--text-primary) !important;
+            border-radius: 0 !important;
+            padding: 0.75rem 0.5rem !important;
+            caret-color: var(--gold-primary);
+            transition: border-color var(--anim-medium) ease;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 5px 25px -5px var(--gold-glow) !important;
+            border-bottom-color: var(--gold-primary) !important;
+        }
+
+        .form-control::placeholder {
+            color: rgba(212, 175, 55, 0.6);
+            opacity: 1;
+        }
+
+        .btn-primary {
+            background: transparent;
+            border: 2px solid var(--gold-dark);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+            color: var(--gold-primary);
+            font-weight: 600;
+            width: 100%;
+            border-radius: 10px;
+            transition: all var(--anim-medium) var(--easing-standard);
+        }
+
+        .btn-primary:hover {
+            background-image: linear-gradient(60deg, var(--gold-dark), var(--gold-primary), var(--gold-light));
+            background-size: 200% auto;
+            background-position: right center;
+            color: var(--slate-darkest);
+            border-color: var(--gold-primary);
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 8px 30px var(--gold-glow);
+        }
+
+        .btn-primary:active {
+            transform: translateY(-1px) scale(1);
+            box-shadow: 0 4px 15px var(--gold-glow);
+        }
+
+        .card {
+            background: rgba(45, 45, 45, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            transform-style: preserve-3d;
+            transition: all var(--anim-medium) var(--easing-standard);
+            opacity: 0;
+            animation: slide-in var(--anim-slow) var(--easing-standard) forwards;
+        }
+
+        .card:nth-child(1) {
+            animation-delay: 0.3s;
+        }
+
+        .card:nth-child(2) {
+            animation-delay: 0.35s;
+        }
+
+        .card:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        .card:nth-child(4) {
+            animation-delay: 0.45s;
+        }
+
+        .card:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        .card:nth-child(6) {
+            animation-delay: 0.55s;
+        }
+
+        .card:hover {
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border-color: rgba(212, 175, 55, 0.4);
+            transform: scale(1.05) rotateX(var(--rotateX)) rotateY(var(--rotateY));
+        }
+
+        .card-body span {
+            font-weight: 500;
+            position: relative;
+            transition: color var(--anim-medium) ease;
+            color: var(--text-default-task);
+        }
+
+        .card-body a {
+            font-size: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--text-secondary);
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            transition: all var(--anim-medium) var(--easing-standard);
+            margin-left: 0.5rem;
+        }
+
+        /* UPDATED: Exit animation now triggered by JS */
+        @keyframes exit-animation {
+            to {
+                opacity: 0;
+                transform: scale(0.8) translateX(100px);
+            }
+        }
+
+        .card.card--exiting {
+            animation: exit-animation 0.4s var(--easing-standard) forwards;
+        }
+
+        .btn-outline-danger {
+            border-color: var(--danger-primary);
+        }
+
+        .btn-outline-danger::before,
+        .btn-outline-danger::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 2px;
+            background-color: var(--danger-primary);
+            transition: all var(--anim-medium) var(--easing-standard);
+        }
+
+        .btn-outline-danger::before {
+            transform: rotate(45deg);
+        }
+
+        .btn-outline-danger::after {
+            transform: rotate(-45deg);
+        }
+
+        .btn-outline-danger:hover {
+            border-color: var(--danger-primary);
+            box-shadow: 0 0 15px var(--danger-glow);
+            background-color: rgba(239, 83, 80, 0.1);
+        }
+
+        .btn-outline-danger:hover::before,
+        .btn-outline-danger:hover::after {
+            transform: rotate(135deg);
+        }
+
+        @keyframes draw-strikethrough {
+            from {
+                transform: scaleX(0);
+            }
+
+            to {
+                transform: scaleX(1);
+            }
+        }
+
+        @keyframes draw-check-long {
+            from {
+                height: 0;
+            }
+
+            to {
+                height: 12px;
+            }
+        }
+
+        @keyframes draw-check-short {
+            from {
+                height: 0;
+            }
+
+            to {
+                height: 6px;
+            }
+        }
+
+        /* UPDATED: Completed state now triggered by JS */
+        .card.card--completed-state {
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold-light));
+            box-shadow: 0 0 30px 5px var(--gold-glow);
+            border-color: var(--gold-light);
+        }
+
+        .text-strikethrough {
+            color: var(--slate-darkest);
+            font-weight: 600;
+        }
+
+        .text-strikethrough::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--slate-darkest);
+            transform-origin: left;
+            animation: draw-strikethrough var(--anim-medium) var(--easing-standard) forwards;
+        }
+
+        .card--completed-state .btn-outline-secondary,
+        .card:has(.text-strikethrough) .btn-outline-secondary {
+            border-color: var(--slate-darkest);
+            background-color: var(--slate-darkest);
+        }
+
+        .card--completed-state .btn-outline-danger,
+        .card:has(.text-strikethrough) .btn-outline-danger {
+            border-color: var(--slate-darkest);
+        }
+
+        .card--completed-state .btn-outline-danger:hover,
+        .card:has(.text-strikethrough) .btn-outline-danger:hover {
+            border-color: var(--danger-primary);
+            background-color: var(--danger-primary);
+        }
+
+        .card--completed-state .btn-outline-danger::before,
+        .card--completed-state .btn-outline-danger::after,
+        .card:has(.text-strikethrough) .btn-outline-danger::before,
+        .card:has(.text-strikethrough) .btn-outline-danger::after {
+            background-color: var(--slate-darkest);
+        }
+
+        .card--completed-state .btn-outline-danger:hover::before,
+        .card--completed-state .btn-outline-danger:hover::after,
+        .card:has(.text-strikethrough) .btn-outline-danger:hover::before,
+        .card:has(.text-strikethrough) .btn-outline-danger:hover::after {
+            background-color: var(--text-primary);
+        }
+
+        .card--completed-state .btn-outline-secondary::before,
+        .card--completed-state .btn-outline-secondary::after,
+        .card:has(.text-strikethrough) .btn-outline-secondary::before,
+        .card:has(.text-strikethrough) .btn-outline-secondary::after {
+            content: '';
+            position: absolute;
+            background-color: var(--gold-light);
+            transition: all var(--anim-medium) var(--easing-standard);
+        }
+
+        .card--completed-state .btn-outline-secondary::before,
+        .card:has(.text-strikethrough) .btn-outline-secondary::before {
+            width: 2px;
+            transform: rotate(45deg);
+            left: 16px;
+            top: 8px;
+            animation: draw-check-long 0.2s var(--easing-standard) 0.1s forwards;
+        }
+
+        .card--completed-state .btn-outline-secondary::after,
+        .card:has(.text-strikethrough) .btn-outline-secondary::after {
+            width: 2px;
+            transform: rotate(-45deg);
+            left: 11px;
+            top: 13px;
+            animation: draw-check-short 0.15s var(--easing-standard) forwards;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="mt-5 text-center">Micro-P1 To Do List</h1>
+        <form action="/" method="post" class="row mt-3">
+            <div class="col-md-10">
+                <input class="form-control form-control-lg" type="text" name="title" placeholder="Add your to do task"
+                    required>
+            </div>
+            <div class="col-md-2">
+                <button type="Submit" class="btn btn-primary btn-lg btn-block">Add</button>
+            </div>
+        </form>
+        <div class="mt-4">
+            <th:block th:each="task : ${tasks}">
+                <div th:classappend="${task.completed} ? 'card--completed-state'" class="card mb-2">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <span th:classappend="${task.completed} ? 'text-strikethrough'" th:text="${task.title}">Task
+                            Title </span>
+                        <div>
+                            <a th:href="@{/{id}/toggle(id=${task.id})}"
+                                class="btn btn-outline-secondary btn-sm">Complete</a>
+                            <a th:href="@{/{id}/delete(id=${task.id})}"
+                                class="btn btn-outline-danger btn-sm ml-2">Delete</a>
+                        </div>
+                    </div>
+                </div>
+            </th:block>
+        </div>
+    </div>
+    <script th:src="@{/js/tilt-effect.js}"></script>
+</body>
+
+</html>
